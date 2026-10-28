@@ -3687,7 +3687,7 @@
 #define FAN_SOFT_PWM  // The part fan whined at the 1 kHz hardware PWM, stalled at 25 kHz, and ran flat out at ~8 Hz soft PWM
 #if ENABLED(FAN_SOFT_PWM)
   #define FAN_SLOW_PWM          // Switch the fan fully on/off over a long period and let the rotor's inertia average the speed
-  #define FAN_SLOW_PWM_MS 1000  // Period (ms). M106 W<ms> changes it at runtime.
+  #define FAN_SLOW_PWM_MS 500   // Period (ms), picked by ear on the YD5015HSL blower. M106 W<ms> changes it at runtime.
 #endif
 
 /**
