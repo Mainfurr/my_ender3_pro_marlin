@@ -25,6 +25,18 @@
 // VENDOR VERSION EXAMPLE //
 ////////////////////////////
 
+// Mainfurr build: the CI workflow passes the commit and build date
+#ifndef MF_GIT_REV
+  #define MF_GIT_REV "local"
+#endif
+#ifndef MF_BUILD_DATE
+  #define MF_BUILD_DATE "2026-10-28"
+#endif
+#define SHORT_BUILD_VERSION "2.1.x MF " MF_GIT_REV
+#define DETAILED_BUILD_VERSION "bugfix-2.1.x Mainfurr build " MF_GIT_REV
+#define STRING_DISTRIBUTION_DATE MF_BUILD_DATE
+#define SOURCE_CODE_URL "github.com/Mainfurr/my_ender3_pro_marlin"
+
 /**
  * Marlin release version identifier
  */

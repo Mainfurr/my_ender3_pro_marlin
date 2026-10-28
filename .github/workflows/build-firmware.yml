@@ -20,7 +20,9 @@ jobs:
     - name: Install PlatformIO
       run: pip install -U platformio
     - name: Build STM32G0B1RE_btt (SKR Mini E3 V3.0)
-      run: pio run -e STM32G0B1RE_btt
+      run: |
+        export PLATFORMIO_BUILD_FLAGS="-DMF_GIT_REV=\\\"${GITHUB_SHA::7}\\\" -DMF_BUILD_DATE=\\\"$(date -u +%F)\\\""
+        pio run -e STM32G0B1RE_btt
     - name: Checksum
       run: |
         cp .pio/build/STM32G0B1RE_btt/firmware.bin firmware.bin
