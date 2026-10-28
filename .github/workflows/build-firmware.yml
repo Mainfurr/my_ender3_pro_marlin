@@ -1,0 +1,30 @@
+name: Build printer firmware
+
+on:
+  push:
+    branches:
+    - 'claude/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    - name: Install PlatformIO
+      run: pip install -U platformio
+    - name: Build STM32G0B1RE_btt (SKR Mini E3 V3.0)
+      run: pio run -e STM32G0B1RE_btt
+    - name: Checksum
+      run: |
+        cp .pio/build/STM32G0B1RE_btt/firmware.bin firmware.bin
+        sha256sum firmware.bin | tee SHA256SUMS
+    - uses: actions/upload-artifact@v4
+      with:
+        name: firmware-STM32G0B1RE_btt
+        path: |
+          firmware.bin
+          SHA256SUMS
