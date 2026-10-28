@@ -668,6 +668,9 @@ volatile bool Temperature::raw_temps_ready = false;
   uint8_t Temperature::soft_pwm_amount_fan[FAN_COUNT],
           Temperature::soft_pwm_count_fan[FAN_COUNT];
 #endif
+#if ENABLED(FAN_SLOW_PWM)
+  uint16_t Temperature::fan_slow_pwm_ms = FAN_SLOW_PWM_MS;
+#endif
 
 #if ENABLED(SINGLENOZZLE_STANDBY_TEMP)
   celsius_t Temperature::singlenozzle_temp[EXTRUDERS];
@@ -4262,7 +4265,7 @@ void Temperature::isr() {
 
       TERF(HAS_COOLER, _PWM_MOD)(COOLER, soft_pwm_cooler, temp_cooler);
 
-      #if ENABLED(FAN_SOFT_PWM)
+      #if ENABLED(FAN_SOFT_PWM) && DISABLED(FAN_SLOW_PWM)
 
         #if ENABLED(USE_CONTROLLER_FAN)
           WRITE(CONTROLLER_FAN_PIN, soft_pwm_controllerfan.add(pwm_mask, controllerFan.soft_pwm_speed));
@@ -4288,7 +4291,7 @@ void Temperature::isr() {
       TERF(HAS_HEATED_CHAMBER, _PWM_LOW)(CHAMBER, soft_pwm_chamber);
       TERF(HAS_COOLER,         _PWM_LOW)(COOLER, soft_pwm_cooler);
 
-      #if ENABLED(FAN_SOFT_PWM)
+      #if ENABLED(FAN_SOFT_PWM) && DISABLED(FAN_SLOW_PWM)
         REPEAT(FAN_COUNT, _FAN_LOW);
         #if ENABLED(USE_CONTROLLER_FAN)
           if (soft_pwm_controllerfan.count <= pwm_count_tmp) WRITE(CONTROLLER_FAN_PIN, LOW);
@@ -4379,6 +4382,16 @@ void Temperature::isr() {
     }
 
   #endif // SLOW_PWM_HEATERS
+
+  #if ENABLED(FAN_SLOW_PWM)
+    // Fan fully on for the S/255 part of each period, off for the rest
+    {
+      const uint32_t phase = millis() % Temperature::fan_slow_pwm_ms;
+      #define _FAN_SLOW(N) WRITE_FAN(N, soft_pwm_amount_fan[N] >= 255 || phase * 255 < uint32_t(soft_pwm_amount_fan[N]) * Temperature::fan_slow_pwm_ms);
+      #define FAN_SLOW(N) TERF(HAS_FAN##N, _FAN_SLOW)(N);
+      REPEAT(FAN_COUNT, FAN_SLOW);
+    }
+  #endif
 
   //
   // Update lcd buttons at ~488Hz or ~976Hz

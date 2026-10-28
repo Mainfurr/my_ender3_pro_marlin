@@ -51,7 +51,7 @@
  *   I<index>  Material Preset index (if material presets are defined)
  *   S<int>    Speed between 0-255
  *   P<index>  Fan index, if more than one fan
- *   F<hz>     Part fan PWM frequency (FAST_PWM_FAN only)
+ *   W<ms>     Fan on/off period (FAN_SLOW_PWM only)
  *
  * With EXTRA_FAN_SPEED:
  *   T<int>  Restore/Use/Set Temporary Speed:
@@ -72,14 +72,11 @@ void GcodeSuite::M106() {
     }
   #endif
 
-  #if ENABLED(FAST_PWM_FAN) && PIN_EXISTS(FAN0)
-    // F<hz> sets the fan PWM frequency at runtime, to find one the fan runs at
-    if (parser.seenval('F')) {
-      const uint16_t f = parser.value_ushort();
-      if (f) {
-        hal.set_pwm_frequency(pin_t(FAN0_PIN), f);
-        SERIAL_ECHOLNPGM("Fan PWM frequency: ", f, " Hz");
-      }
+  #if ENABLED(FAN_SLOW_PWM)
+    // W<ms> sets the on/off period of the slow fan PWM
+    if (parser.seenval('W')) {
+      thermalManager.fan_slow_pwm_ms = constrain(parser.value_ushort(), uint16_t(100), uint16_t(10000));
+      SERIAL_ECHOLNPGM("Fan slow PWM period: ", thermalManager.fan_slow_pwm_ms, " ms");
       if (!parser.seen('S') && !parser.seen('I')) return;
     }
   #endif

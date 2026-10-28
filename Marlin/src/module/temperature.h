@@ -692,6 +692,9 @@ class Temperature {
       static uint8_t soft_pwm_amount_fan[FAN_COUNT],
                      soft_pwm_count_fan[FAN_COUNT];
     #endif
+    #if ENABLED(FAN_SLOW_PWM)
+      static uint16_t fan_slow_pwm_ms;
+    #endif
 
     #if ALL(FAN_SOFT_PWM, USE_CONTROLLER_FAN)
       static uint8_t soft_pwm_controllerfan_speed;
