@@ -689,7 +689,7 @@
  */
 #define FAST_PWM_FAN    // Increase the fan PWM frequency. Removes the PWM noise but increases heating in the FET/Arduino
 #if ENABLED(FAST_PWM_FAN)
-  #define FAST_PWM_FAN_FREQUENCY 25000  // Above hearing; the 1 kHz default made the part fan whine at partial speed
+  #define FAST_PWM_FAN_FREQUENCY 1000   // 25 kHz stopped the part fan below S255; tune live with M106 F<hz>
   //#define USE_OCR2A_AS_TOP
   #ifndef FAST_PWM_FAN_FREQUENCY
     #ifdef __AVR__
