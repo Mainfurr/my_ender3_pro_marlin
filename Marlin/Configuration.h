@@ -3684,7 +3684,7 @@
  * which is not as annoying as with the hardware PWM. On the other hand, if this frequency
  * is too low, you should also increment SOFT_PWM_SCALE.
  */
-//#define FAN_SOFT_PWM
+#define FAN_SOFT_PWM  // ~8 Hz from the temperature ISR; the part fan whined at the 1 kHz hardware PWM and stalled at 25 kHz
 
 /**
  * Incrementing this by 1 will double the software PWM frequency, affecting heaters, and
