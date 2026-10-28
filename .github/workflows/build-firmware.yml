@@ -6,6 +6,9 @@ on:
     - 'claude/**'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -28,3 +31,24 @@ jobs:
         path: |
           firmware.bin
           SHA256SUMS
+    # Artifact downloads are blocked for the build host, so also commit the
+    # binary to the firmware-builds branch, where git fetch can reach it.
+    - name: Publish to firmware-builds branch
+      run: |
+        dir="$GITHUB_REF_NAME"
+        mkdir -p /tmp/out/"$dir"
+        cp firmware.bin SHA256SUMS /tmp/out/"$dir"/
+        echo "$GITHUB_SHA" > /tmp/out/"$dir"/SOURCE_COMMIT
+        git config user.name "github-actions[bot]"
+        git config user.email "41898333+github-actions[bot]@users.noreply.github.com"
+        if git fetch origin firmware-builds; then
+          git checkout -B firmware-builds origin/firmware-builds
+        else
+          git checkout --orphan firmware-builds
+          git rm -rfq .
+        fi
+        git clean -fdxq
+        cp -r /tmp/out/. .
+        git add -A
+        git commit -m "Firmware for $dir @ ${GITHUB_SHA::7}" || exit 0
+        git push origin firmware-builds
