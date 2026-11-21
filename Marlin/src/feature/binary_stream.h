@@ -64,6 +64,15 @@ private:
       card.mount();
       card.openFileWrite(filename);
       if (!card.isFileOpen()) return false;
+      // card.filename is not reliable for this file: selectFileByName() only
+      // matches DOS 8.3 names (and never .BIN files), so after opening a long
+      // name it holds another directory entry. Remember the requested path,
+      // so an aborted transfer removes this file and nothing else.
+      const size_t length = strlen(filename);
+      if (length < transfer_path_size)
+        memcpy(transfer_path(), filename, length + 1);
+      else
+        transfer_path()[0] = '\0';  // too long to remember: keep the partial file
     }
     transfer_active = true;
     data_waiting = 0;
@@ -112,13 +121,15 @@ private:
     }
     TERN_(BINARY_STREAM_COMPRESSION, heatshrink_decoder_finish(&hsd));
     transfer_active = false;
+    transfer_path()[0] = '\0';  // complete: a later ABORT must not delete it
     return true;
   }
 
   static void transfer_abort() {
     if (!dummy_transfer) {
       card.closefile();
-      card.removeFile(card.filename);
+      if (transfer_active && transfer_path()[0]) card.removeFile(transfer_path());
+      transfer_path()[0] = '\0';
       card.release();
       TERN_(BINARY_STREAM_COMPRESSION, heatshrink_decoder_finish(&hsd));
     }
@@ -130,6 +141,9 @@ private:
 
   static size_t data_waiting, transfer_timeout, idle_timeout;
   static bool transfer_active, dummy_transfer, compression;
+  // Path of the file being written; empty when an abort must not delete.
+  static constexpr size_t transfer_path_size = 128;
+  static char *transfer_path() { static char path[transfer_path_size]; return path; }
 
 public:
 
